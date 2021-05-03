@@ -1,0 +1,18 @@
+--------------------------------------------------------------------
+Benchmark                          Time             CPU   Iterations
+--------------------------------------------------------------------
+BM_HANDLE_SNAP/1                28.6 ms         28.6 ms           24
+BM_HANDLE_SNAP/2                57.3 ms         57.3 ms           12
+BM_HANDLE_SNAP/4                 119 ms          119 ms            6
+BM_HANDLE_SNAP/8                 228 ms          228 ms            3
+BM_HANDLE_SNAP/16                469 ms          469 ms            2
+BM_HANDLE_L2                    1.30 us         1.30 us       551454
+BM_HANDLE_X_L2THREADS/1         38.7 us         38.6 us        18551
+BM_HANDLE_X_L2THREADS/2         70.8 us         70.6 us         8412
+BM_HANDLE_X_L2THREADS/4          145 us          143 us         4467
+BM_HANDLE_X_L2THREADS/8          289 us          281 us         2396
+BM_HANDLE_X_L2THREADS/16         547 us          545 us         1205
+BM_HANDLE_X_L2THREADS/32        1102 us         1098 us          604
+BM_HANDLE_X_L2THREADS/64        2194 us         2186 us          308
+BM_HANDLE_X_L2THREADS/128       4412 us         4400 us          160
+BM_HANDLE_X_L2THREADS/256       8817 us         8787 us           76
