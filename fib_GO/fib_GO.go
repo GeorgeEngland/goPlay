@@ -1,17 +1,22 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
-	number := 100
+	const number = 10
 
 	jobs := make(chan int, number)
 	results := make(chan int, number)
-	go worker(jobs, results)
-	go worker(jobs, results)
-	go worker(jobs, results)
-	go worker(jobs, results)
-
+	//var res [number]int
+	var slice = make([]int, number)
+	slice[0] = 0
+	slice[1] = 1
+	go worker(jobs, results, slice)
+	go worker(jobs, results, slice)
+	go worker(jobs, results, slice)
+	go worker(jobs, results, slice)
 	for i := 0; i < number; i++ {
 		jobs <- i
 	}
@@ -22,15 +27,21 @@ func main() {
 	}
 }
 
-func worker(jobs <-chan int, results chan<- int) {
+func worker(jobs <-chan int, results chan<- int, res []int) {
 	for n := range jobs {
-		results <- fib(n)
+		results <- fib(n, res)
 	}
 }
 
-func fib(n int) int {
+func fib(n int, res []int) int {
 	if n <= 1 {
 		return n
 	}
-	return fib(n-1) + fib(n-2)
+	if res[n-1] == 0 {
+		res[n-1] = fib(n-1, res)
+	}
+	if res[n-2] == 0 {
+		res[n-2] = fib(n-2, res)
+	}
+	return res[n-1] + res[n-2]
 }
