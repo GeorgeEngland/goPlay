@@ -12,6 +12,7 @@ func main() {
 	for msg := range c {
 		println(msg)
 	}
+
 }
 
 func count(thing string, delay time.Duration, c chan string) {
