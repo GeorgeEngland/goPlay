@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"play.com/greetings_GO"
@@ -14,8 +15,16 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(msg)
-	go count("sheep", 1000)
+	go count("sheep", 100)
 	count("fish", 200)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		count("poop", 100)
+		wg.Done()
+	}()
+	wg.Wait()
 }
 
 func count(thing string, delay time.Duration) {
