@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -10,48 +9,46 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
 
-var addr = flag.String("addr", "ws-feed.pro.coinbase.com", "http service address")
+var addr = flag.String("product", "ETH-USD", "product_id")
 
 func main() {
 	flag.Parse()
 	log.SetFlags(0)
 
-	byteValue, _ := ioutil.ReadFile("sub.json")
-
-	var result map[string]interface{}
-	json.Unmarshal([]byte(byteValue), &result)
-	b := bytes.NewBuffer(byteValue)
-	//json.NewEncoder(b).Encode(result)
-	fmt.Println(result, b)
-
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	u := url.URL{Scheme: "wss", Host: *addr}
+	u := url.URL{Scheme: "wss", Host: "ws-feed.pro.coinbase.com"}
 	log.Printf("connecting to %s", u.String())
 	c, res, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	fmt.Println(res)
 	if err != nil {
 		log.Fatal("dial:", err)
 	}
+	defer c.Close()
 
+	byteValue, _ := ioutil.ReadFile("sub.json")
+	var result map[string]interface{}
+	json.Unmarshal([]byte(byteValue), &result)
+	fmt.Println(result)
 	err = c.WriteJSON(result)
 	if err != nil {
 		log.Fatal("JSON:", err)
 	}
-	defer c.Close()
 
 	done := make(chan struct{})
 
 	go func() {
 		defer close(done)
+		var m sync.Mutex
 		for {
-
 			_, message, err := c.ReadMessage()
 			start := time.Now()
 
@@ -59,9 +56,20 @@ func main() {
 				log.Println("read:", err)
 				return
 			}
-			var result map[string]interface{}
 
-			err = json.Unmarshal(message, &result)
+			go func() {
+				var result map[string]interface{}
+
+				err = json.Unmarshal(message, &result)
+				msg2 := []byte(" " + strconv.Itoa(int(time.Now().Sub(start).Microseconds())) + " us")
+				m.Lock()
+				err2 := ioutil.WriteFile("file.txt", msg2, 0644)
+				m.Unlock()
+				if err2 != nil {
+					fmt.Println(err2)
+				}
+			}()
+
 			t := time.Now()
 			elapsed := t.Sub(start)
 			fmt.Println(elapsed, result)

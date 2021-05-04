@@ -28,7 +28,7 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	// Poll file for changes with this period.
-	filePeriod = 33 * time.Millisecond
+	filePeriod = 125 * time.Millisecond
 )
 
 var (
@@ -140,6 +140,7 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	p, lastMod, err := readFileIfModified(time.Time{})
 	if err != nil {
@@ -194,9 +195,9 @@ const homeHTML = `<!DOCTYPE html>
                 conn.onmessage = function(evt) {
 					var d= evt.data.match(/\b\d+\b us/g)
                     console.log('file updated with', d ? d[d.length-1].slice(0,-3): null);
-                    data.textContent = d ? d[d.length-1] : "no data yet"//evt.data;
+                    data.textContent = d ? d[d.length-1] : ""//evt.data;
 					var col = document.getElementById("box")
-
+					data.textContent = "Function Took: " + data.textContent
 					if(d){
 						var width = parseInt(d[d.length-1].slice(0,-3));
 						var w = width ==0 ? 0 : 100*Math.log(width)
