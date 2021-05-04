@@ -28,7 +28,7 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	// Poll file for changes with this period.
-	filePeriod = 500 * time.Millisecond
+	filePeriod = 33 * time.Millisecond
 )
 
 var (
@@ -177,6 +177,12 @@ const homeHTML = `<!DOCTYPE html>
         <title>WebSocket Example</title>
     </head>
     <body>
+	<div id = "box" style="
+		height:10;
+		width:200px;
+		background-color:green;
+		"
+	></div>
         <pre id="fileData">{{.Data}}</pre>
         <script type="text/javascript">
             (function() {
@@ -186,8 +192,22 @@ const homeHTML = `<!DOCTYPE html>
                     data.textContent = 'Connection closed';
                 }
                 conn.onmessage = function(evt) {
-                    console.log('file updated');
-                    data.textContent = evt.data;
+					var d= evt.data.match(/\b\d+\b us/g)
+                    console.log('file updated with', d ? d[d.length-1].slice(0,-3): null);
+                    data.textContent = d ? d[d.length-1] : "no data yet"//evt.data;
+					var col = document.getElementById("box")
+
+					if(d){
+						var width = parseInt(d[d.length-1].slice(0,-3));
+						var w = width ==0 ? 0 : 100*Math.log(width)
+						
+
+						col.style.cssText = 'height: 10px; width:'+w+'px; background-color:green;';
+						//"height:200px;
+						//width:'+d[d.length-1].slice(0,-3) != '0' ? d[d.length-1].slice(0,-3) :'0'+'px;
+						//background-color:red;"
+				}
+					
                 }
             })();
         </script>
