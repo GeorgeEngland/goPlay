@@ -1,0 +1,19 @@
+{
+    "channels" :
+    [
+            "level2",
+            "heartbeat",
+            {
+                    "name" : "ticker",
+                    "product_ids" :
+                    [
+                       "ETH-USD"     
+                    ]
+            }
+    ],
+    "product_ids" :
+    [
+            "ETH-USD"
+    ],
+    "type" : "subscribe"
+}

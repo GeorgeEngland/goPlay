@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -11,21 +15,34 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var addr = flag.String("addr", "localhost:8080", "http service address")
+var addr = flag.String("addr", "ws-feed.pro.coinbase.com", "http service address")
 
 func main() {
 	flag.Parse()
 	log.SetFlags(0)
 
+	byteValue, _ := ioutil.ReadFile("sub.json")
+
+	var result map[string]interface{}
+	json.Unmarshal([]byte(byteValue), &result)
+	b := bytes.NewBuffer(byteValue)
+	//json.NewEncoder(b).Encode(result)
+	fmt.Println(result, b)
+
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	u := url.URL{Scheme: "ws", Host: *addr, Path: "/echo"}
+	u := url.URL{Scheme: "wss", Host: *addr}
 	log.Printf("connecting to %s", u.String())
-
-	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	c, res, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	fmt.Println(res)
 	if err != nil {
 		log.Fatal("dial:", err)
+	}
+
+	err = c.WriteJSON(result)
+	if err != nil {
+		log.Fatal("JSON:", err)
 	}
 	defer c.Close()
 
@@ -34,28 +51,27 @@ func main() {
 	go func() {
 		defer close(done)
 		for {
+
 			_, message, err := c.ReadMessage()
+			start := time.Now()
+
 			if err != nil {
 				log.Println("read:", err)
 				return
 			}
-			log.Printf("recv: %s", message)
+			var result map[string]interface{}
+
+			err = json.Unmarshal(message, &result)
+			t := time.Now()
+			elapsed := t.Sub(start)
+			fmt.Println(elapsed, result)
 		}
 	}()
-
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
 
 	for {
 		select {
 		case <-done:
 			return
-		case t := <-ticker.C:
-			err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
-			if err != nil {
-				log.Println("write:", err)
-				return
-			}
 		case <-interrupt:
 			log.Println("interrupt")
 
@@ -66,11 +82,6 @@ func main() {
 				log.Println("write close:", err)
 				return
 			}
-			select {
-			case <-done:
-			case <-time.After(time.Second):
-			}
-			return
 		}
 	}
 }
